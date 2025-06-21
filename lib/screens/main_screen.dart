@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:myapp/services/script_runner.dart';
 
@@ -12,79 +11,70 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final TextEditingController _urlController =
-      TextEditingController(text: 'https://flutter.dev');
-  InAppWebViewController? _webViewController;
-  final ScriptRunner _scriptRunner = ScriptRunner(rootBundle);
-  String? _simulationScript;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSimulationScript();
-  }
-
-  Future<void> _loadSimulationScript() async {
-    final script = await _scriptRunner.loadScript('assets/simulation_tools.js');
-    setState(() {
-      _simulationScript = script;
-    });
-  }
-
-  void _runInWebView(String code) {
-    _webViewController?.evaluateJavascript(source: code);
-  }
+  late InAppWebViewController _webViewController;
+  final ScriptRunner _scriptRunner = ScriptRunner();
+  final TextEditingController _urlController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Web Snapshot'),
-        elevation: 4,
+        title: const Text('Web Snapshot Tool'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _webViewController.reload();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _urlController,
-                    decoration: const InputDecoration(
-                      labelText: 'Enter URL',
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (url) {
-                       _webViewController?.loadUrl(
-                          urlRequest: URLRequest(url: WebUri(url)),
-                       );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
+            child: TextField(
+              controller: _urlController,
+              decoration: InputDecoration(
+                labelText: 'Enter URL',
+                suffixIcon: IconButton(
                   icon: const Icon(Icons.arrow_forward),
                   onPressed: () {
-                     _webViewController?.loadUrl(
-                          urlRequest: URLRequest(url: WebUri(_urlController.text)),
-                       );
+                    final url = _urlController.text;
+                    if (url.isNotEmpty) {
+                      _webViewController.loadUrl(
+                        urlRequest: URLRequest(
+                          url: WebUri(url),
+                        ),
+                      );
+                    }
                   },
                 ),
-              ],
+              ),
+              onSubmitted: (url) {
+                if (url.isNotEmpty) {
+                  _webViewController.loadUrl(
+                    urlRequest: URLRequest(
+                      url: WebUri(url),
+                    ),
+                  );
+                }
+              },
             ),
           ),
           Expanded(
             child: InAppWebView(
               initialUrlRequest: URLRequest(
-                url: WebUri(_urlController.text),
+                url: WebUri("https://flutter.dev"),
               ),
               onWebViewCreated: (controller) {
                 _webViewController = controller;
               },
               onLoadStop: (controller, url) {
-                if (_simulationScript != null) {
-                  _runInWebView(_simulationScript!);
+                _scriptRunner.executeScript(
+                    controller, 'assets/simulation_tools.js');
+                if (url != null) {
+                  _urlController.text = url.toString();
                 }
               },
             ),
