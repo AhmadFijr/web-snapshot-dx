@@ -1,0 +1,58 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub/
+/build/
+/ios/Pods/
+/ios/.symlinks/
+/ios/Flutter/App.framework
+/ios/Flutter/engine.xcconfig
+/ios/Flutter/flutter_export_environment.sh
+/ios/Flutter/Generated.xcconfig
+/ios/Runner/GeneratedPluginRegistrant.*
+/ios/Runner.xcworkspace/
+/android/.gradle/
+/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+/android/key.properties
+app.dSYM/
+app.zip
+DerivedData/
+snapshot.d
+/windows/flutter/ephemeral
+/windows/flutter/generated_plugins.cmake
+/windows/flutter/generated_*.h
+/windows/flutter/generated_*.cc
+/windows/.vs
+/linux/flutter/ephemeral
+/linux/flutter/generated_plugins.cmake
+/linux/flutter/generated_*.h
+/linux/flutter/generated_*.cc
+/macos/flutter/ephemeral
+/macos/Flutter/Generated/*.h
+/macos/Flutter/Generated/*.m
+/macos/Flutter/ephemeral.app
+/web/flutter_bootstrap.js
+/web/main.dart.js*
+
+# Packages
+pubspec.lock
