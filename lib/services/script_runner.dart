@@ -1,18 +1,16 @@
-
-import 'package:flutter/services.dart' show AssetBundle;
+import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:path/path.dart' as path;
 
 class ScriptRunner {
-  final AssetBundle _assetBundle;
-
-  ScriptRunner(this._assetBundle);
-
-  Future<String> loadScript(String path) async {
+  Future<void> execute(InAppWebViewController controller) async {
     try {
-      return await _assetBundle.loadString(path);
+      final script =
+          await rootBundle.loadString(path.join('assets', 'simulation_tools.js'));
+      await controller.evaluateJavascript(source: script);
     } catch (e) {
-      // ignore: avoid_print
-      print('Error loading script: $e');
-      return '';
+      // Handle potential errors, e.g., script not found
+      print('Error executing script: $e');
     }
   }
 }
