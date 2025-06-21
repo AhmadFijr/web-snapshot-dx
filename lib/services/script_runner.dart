@@ -1,17 +1,17 @@
-import 'package:flutter/services.dart';
-import 'package:logger/logger.dart';
+
+import 'package:flutter/services.dart' show AssetBundle;
 
 class ScriptRunner {
-  final AssetBundle _bundle;
-  final Logger _logger = Logger();
+  final AssetBundle _assetBundle;
 
-  ScriptRunner({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
+  ScriptRunner(this._assetBundle);
 
-  Future<String> loadScript() async {
+  Future<String> loadScript(String path) async {
     try {
-      return await _bundle.loadString('assets/simulation_tools.js');
+      return await _assetBundle.loadString(path);
     } catch (e) {
-      _logger.e('Error loading script: $e');
+      // ignore: avoid_print
+      print('Error loading script: $e');
       return '';
     }
   }

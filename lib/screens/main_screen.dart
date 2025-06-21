@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:myapp/services/script_runner.dart';
 
@@ -10,63 +12,35 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final TextEditingController _urlController =
+      TextEditingController(text: 'https://flutter.dev');
   InAppWebViewController? _webViewController;
-  final TextEditingController _urlController = TextEditingController();
-  final ScriptRunner _scriptRunner = ScriptRunner();
+  final ScriptRunner _scriptRunner = ScriptRunner(rootBundle);
   String? _simulationScript;
 
   @override
   void initState() {
     super.initState();
-    _scriptRunner.loadScript().then((script) {
-      if (mounted) {
-        setState(() {
-          _simulationScript = script;
-        });
-      }
+    _loadSimulationScript();
+  }
+
+  Future<void> _loadSimulationScript() async {
+    final script = await _scriptRunner.loadScript('assets/simulation_tools.js');
+    setState(() {
+      _simulationScript = script;
     });
-    _urlController.text = "https://flutter.dev";
   }
 
-  void _runSimulation() {
-    if (_webViewController != null && _simulationScript != null) {
-      _webViewController!.evaluateJavascript(source: _simulationScript!);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('WebView is not ready or script is not loaded.')),
-        );
-      }
-    }
-  }
-
-  void _loadUrlFromTextField() {
-    final String url = _urlController.text.trim();
-    if (url.isNotEmpty) {
-      // Ensure URL has a scheme (e.g., http, https)
-      var uri = WebUri(url);
-      if (uri.scheme.isEmpty) {
-        uri = WebUri('https://$url');
-      }
-      _webViewController?.loadUrl(
-        urlRequest: URLRequest(url: uri),
-      );
-    }
+  void _runInWebView(String code) {
+    _webViewController?.evaluateJavascript(source: code);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Web Snapshot Tool'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.play_arrow),
-            onPressed: _runSimulation,
-            tooltip: 'Run Simulation',
-          ),
-        ],
+        title: const Text('Web Snapshot'),
+        elevation: 4,
       ),
       body: Column(
         children: [
@@ -78,37 +52,39 @@ class _MainScreenState extends State<MainScreen> {
                   child: TextField(
                     controller: _urlController,
                     decoration: const InputDecoration(
-                      hintText: 'Enter URL',
+                      labelText: 'Enter URL',
                       border: OutlineInputBorder(),
                     ),
-                    onSubmitted: (_) => _loadUrlFromTextField(),
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                    onSubmitted: (url) {
+                       _webViewController?.loadUrl(
+                          urlRequest: URLRequest(url: WebUri(url)),
+                       );
+                    },
                   ),
                 ),
+                const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.arrow_forward),
-                  onPressed: _loadUrlFromTextField,
+                  onPressed: () {
+                     _webViewController?.loadUrl(
+                          urlRequest: URLRequest(url: WebUri(_urlController.text)),
+                       );
+                  },
                 ),
               ],
             ),
           ),
           Expanded(
             child: InAppWebView(
-              initialUrlRequest: URLRequest(url: WebUri(_urlController.text)),
+              initialUrlRequest: URLRequest(
+                url: WebUri(_urlController.text),
+              ),
               onWebViewCreated: (controller) {
                 _webViewController = controller;
               },
               onLoadStop: (controller, url) {
-                if (url != null) {
-                  if (mounted) {
-                    // Update text field only if it's different to avoid cursor jumps
-                    if (_urlController.text != url.toString()) {
-                      setState(() {
-                        _urlController.text = url.toString();
-                      });
-                    }
-                  }
+                if (_simulationScript != null) {
+                  _runInWebView(_simulationScript!);
                 }
               },
             ),
